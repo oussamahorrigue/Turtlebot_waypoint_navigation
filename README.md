@@ -59,4 +59,4 @@ This project was inspired by the Turtlebot robot and utilizes the Turtlebot simu
 
 ## Contact
 
-For any inquiries or questions, please contact [your_email@example.com](mailto:your_email@example.com).
+For any inquiries or questions, please contact [horrigueouss@{gmail.com](mailto:horrigueouss@gmail.com).
