@@ -17,7 +17,7 @@ This project focuses on implementing waypoint navigation for the Turtlebot robot
 ## Installation
 
 1. Clone the repository:
-- https://github.com/oussamahorrigue/Turtlebot_waypoint_navigation.git
+- git clone https://github.com/oussamahorrigue/Turtlebot_waypoint_navigation.git
 
 
 2. Build the package:
@@ -32,7 +32,7 @@ This project focuses on implementing waypoint navigation for the Turtlebot robot
 
 1. Run the waypoint navigation script:
 
-rosrun turtlebot_waypoint_navigation waypoint_navigation.py
+rosrun turtlebot_waypoint waypoint.py
 
 
 2. The Turtlebot will start following the specified waypoints, pausing at each point according to the specified durations.
