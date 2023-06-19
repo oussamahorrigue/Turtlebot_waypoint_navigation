@@ -7,14 +7,26 @@ import matplotlib.pyplot as plt
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from math import pi, sqrt, atan2
+import csv
 
-WAYPOINTS = [[6.5,2],[1,3]]
+WAYPOINTS = [[6.5, 2], [1, 3]]
+
 
 class PID:
     """
     Discrete PID control
     """
-    def __init__(self, P=0.0, I=0.0, D=0.0, Derivator=0, Integrator=0, Integrator_max=10, Integrator_min=-10):
+
+    def __init__(
+        self,
+        P=0.0,
+        I=0.0,
+        D=0.0,
+        Derivator=0,
+        Integrator=0,
+        Integrator_max=10,
+        Integrator_min=-10,
+    ):
         self.Kp = P
         self.Ki = I
         self.Kd = D
@@ -28,11 +40,11 @@ class PID:
     def update(self, current_value):
         self.error = self.set_point - current_value
         if self.error > pi:  # specific design for circular situation
-            self.error = self.error - 2*pi
+            self.error = self.error - 2 * pi
         elif self.error < -pi:
-            self.error = self.error + 2*pi
+            self.error = self.error + 2 * pi
         self.P_value = self.Kp * self.error
-        self.D_value = self.Kd * ( self.error - self.Derivator)
+        self.D_value = self.Kd * (self.error - self.Derivator)
         self.Derivator = self.error
         self.Integrator = self.Integrator + self.error
         if self.Integrator > self.Integrator_max:
@@ -53,6 +65,7 @@ class PID:
         self.Ki = set_I
         self.Kd = set_D
 
+
 class turtlebot_move():
     def __init__(self):
         rospy.init_node('turtlebot_move', anonymous=False)
@@ -62,14 +75,17 @@ class turtlebot_move():
         self.x = 0.0
         self.y = 0.0
         self.theta = 0.0
-        self.pid_theta = PID(0,0,0)  # initialization
+        self.pid_theta = PID(0, 0, 0)  # initialization
 
         self.odom_sub = rospy.Subscriber("odom", Odometry, self.odom_callback)
         self.vel_pub = rospy.Publisher('/cmd_vel_mux/input/navi', Twist, queue_size=10)
         self.vel = Twist()
         self.rate = rospy.Rate(10)
         self.counter = 0
-        self.trajectory = list()
+        self.trajectory = []
+        self.theta_values = []  # List to store theta values over time
+        self.coordinate_data = []  # List to store coordinate data
+        self.pid_data = []  # List to store PID data
 
         # track a sequence of waypoints
         for point in WAYPOINTS:
@@ -78,23 +94,44 @@ class turtlebot_move():
         self.stop()
         rospy.logwarn("Action done.")
 
-        # plot trajectory
-        data = np.array(self.trajectory)
-        np.savetxt('trajectory.csv', data, fmt='%f', delimiter=',')
-        plt.plot(data[:,0],data[:,1])
-        plt.show()
+        # save trajectory and theta over time to coordinates.csv
+        with open('coordinates.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(self.trajectory)
 
+        # save PID values to PID.csv
+        with open('PID.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(self.pid_data)
+
+        plt.figure(figsize=(10, 4))
+        plt.subplot(1, 2, 1)
+        data = np.array(self.trajectory)
+        plt.plot(data[:, 0], data[:, 1])
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Trajectory')
+
+        plt.subplot(1, 2, 2)
+        time = np.arange(len(self.theta_values)) / 10  # Time in seconds
+        plt.plot(time, self.theta_values)
+        plt.xlabel('Time (s)')
+        plt.ylabel('Theta')
+        plt.title('Theta over Time')
+
+        plt.tight_layout()
+        plt.show()
 
     def move_to_point(self, x, y):
         # Compute orientation for angular vel and direction vector for linear vel
         diff_x = x - self.x
         diff_y = y - self.y
         direction_vector = np.array([diff_x, diff_y])
-        direction_vector = direction_vector/sqrt(diff_x*diff_x + diff_y*diff_y)  # normalization
+        direction_vector = direction_vector / sqrt(diff_x * diff_x + diff_y * diff_y)  # normalization
         theta = atan2(diff_y, diff_x)
 
         # We should adopt different parameters for different kinds of movement
-        self.pid_theta.setPID(1, 0, 0)     # P control while steering
+        self.pid_theta.setPID(1, 0, 0)  # P control while steering
         self.pid_theta.setPoint(theta)
         rospy.logwarn("### PID: set target theta = " + str(theta) + " ###")
 
@@ -102,7 +139,7 @@ class turtlebot_move():
         while not rospy.is_shutdown():
             angular = self.pid_theta.update(self.theta)
             if abs(angular) > 0.2:
-                angular = angular/abs(angular)*0.2
+                angular = angular / abs(angular) * 0.2
             if abs(angular) < 0.01:
                 break
             self.vel.linear.x = 0
@@ -113,7 +150,7 @@ class turtlebot_move():
         # Have a rest
         self.stop()
         self.pid_theta.setPoint(theta)
-        #self.pid_theta.setPID(1, 0, 0)   # PI control while moving
+        # self.pid_theta.setPID(1, 0, 0)   # PI control while moving
         self.pid_theta.setPID(1, 0.02, 0.2)  # PID control while moving
 
         # Move to the target point
@@ -121,13 +158,13 @@ class turtlebot_move():
             diff_x = x - self.x
             diff_y = y - self.y
             vector = np.array([diff_x, diff_y])
-            linear = np.dot(vector, direction_vector) # projection
+            linear = np.dot(vector, direction_vector)  # projection
             if abs(linear) > 0.2:
-                linear = linear/abs(linear)*0.2
+                linear = linear / abs(linear) * 0.2
 
             angular = self.pid_theta.update(self.theta)
             if abs(angular) > 0.2:
-                angular = angular/abs(angular)*0.2
+                angular = angular / abs(angular) * 0.2
 
             if abs(linear) < 0.01 and abs(angular) < 0.01:
                 break
@@ -137,35 +174,38 @@ class turtlebot_move():
             self.rate.sleep()
 
         self.stop()
-	rospy.loginfo("Reached point: x={}, y={}".format(x, y))
-
+        rospy.loginfo("Reached point: x={}, y={}".format(x, y))
 
     def stop(self):
         self.vel.linear.x = 0
         self.vel.angular.z = 0
         self.vel_pub.publish(self.vel)
-        rospy.sleep(1)
-
 
     def odom_callback(self, msg):
-        # Get (x, y, theta) specification from odometry topic
-        quarternion = [msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,\
-                    msg.pose.pose.orientation.z, msg.pose.pose.orientation.w]
-        (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quarternion)
-        self.theta = yaw
         self.x = msg.pose.pose.position.x
         self.y = msg.pose.pose.position.y
-
-        # Make messages saved and prompted in 5Hz rather than 100Hz
+        quaternion = (
+            msg.pose.pose.orientation.x,
+            msg.pose.pose.orientation.y,
+            msg.pose.pose.orientation.z,
+            msg.pose.pose.orientation.w,
+        )
+        euler = tf.transformations.euler_from_quaternion(quaternion)
+        self.theta = euler[2]
         self.counter += 1
-        if self.counter == 20:
-            self.counter = 0
-            self.trajectory.append([self.x,self.y])
-            rospy.loginfo("odom: x=" + str(self.x) + ";  y=" + str(self.y) + ";  theta=" + str(self.theta))
+
+        # Update trajectory and theta values
+        self.trajectory.append([self.x, self.y])
+        self.theta_values.append(self.theta)
+
+        # Save x, y, theta values and PID values to lists
+        self.coordinate_data.append([self.x, self.y, self.theta])
+        self.pid_data.append([self.pid_theta.Kp, self.pid_theta.Ki, self.pid_theta.Kd])
 
 
 if __name__ == '__main__':
     try:
         turtlebot_move()
     except rospy.ROSInterruptException:
-        rospy.loginfo("Action terminated.")
+        pass
+
