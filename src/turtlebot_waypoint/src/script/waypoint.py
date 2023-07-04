@@ -9,7 +9,8 @@ from nav_msgs.msg import Odometry
 from math import pi, sqrt, atan2
 import csv
 
-WAYPOINTS = [[6.5, 2], [1, 3]]
+WAYPOINTS = [[0.5, 0], [1, 0], [1, 0], [1, 0.5], [1,1], [1,1] ,[0.5,1] ,[0,1] ,[0,1] ,[0,0.5] ,[0,0]]
+
 
 
 class PID:

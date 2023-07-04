@@ -1,6 +1,6 @@
 set(_CATKIN_CURRENT_PACKAGE "turtlebot_waypoint")
 set(turtlebot_waypoint_VERSION "0.0.0")
-set(turtlebot_waypoint_MAINTAINER "oussama <oussama@todo.todo>")
+set(turtlebot_waypoint_MAINTAINER "oussama <horrigueouss@gmail.com>")
 set(turtlebot_waypoint_PACKAGE_FORMAT "2")
 set(turtlebot_waypoint_BUILD_DEPENDS "geometry_msgs" "nav_msgs" "rospy")
 set(turtlebot_waypoint_BUILD_EXPORT_DEPENDS "geometry_msgs" "nav_msgs" "rospy")

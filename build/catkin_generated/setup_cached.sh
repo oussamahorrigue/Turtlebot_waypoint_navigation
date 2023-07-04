@@ -7,8 +7,4 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH="/home/oussama/Desktop/catkin_ws_waypoint/devel:$CMAKE_PREFIX_PATH"
-export LD_LIBRARY_PATH="/home/oussama/Desktop/catkin_ws_waypoint/devel/lib:$LD_LIBRARY_PATH"
-export PKG_CONFIG_PATH="/home/oussama/Desktop/catkin_ws_waypoint/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
 export PWD='/home/oussama/Desktop/catkin_ws_waypoint/build'
-export ROS_PACKAGE_PATH="/home/oussama/Desktop/catkin_ws_waypoint/src:$ROS_PACKAGE_PATH"
